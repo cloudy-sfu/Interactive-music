@@ -1,0 +1,205 @@
+/* Glassmorphism CSS for Bootstrap 5.3 */
+
+:root {
+    /* Default to Light Mode */
+    --glass-bg: rgba(255, 255, 255, 0.6);
+    --glass-border: rgba(0, 0, 0, 0.1);
+    --glass-shadow: 0 8px 8px 0 rgba(0, 0, 0, 0.1);
+    --glass-blur: 10px;
+    --glass-text: #000;
+    --glass-input-bg: rgba(0, 0, 0, 0.05);
+    --glass-input-focus-bg: rgba(0, 0, 0, 0.08);
+    --glass-input-focus-border: rgba(0, 0, 0, 0.2);
+    --glass-input-focus-shadow: rgba(0, 0, 0, 0.1);
+    --glass-placeholder: rgba(0, 0, 0, 0.5);
+    --glass-card-header-bg: rgba(0, 0, 0, 0.03);
+    --glass-btn-hover-bg: rgba(0, 0, 0, 0.1);
+    --glass-btn-hover-border: rgba(0, 0, 0, 0.2);
+    --glass-btn-hover-text: #000;
+    --glass-btn-active-bg: rgba(0, 0, 0, 0.15);
+    --glass-modal-bg: rgba(255, 255, 255, 0.85);
+    --glass-dropdown-bg: rgba(255, 255, 255, 0.9);
+    --glass-dropdown-text: #000;
+    --glass-dropdown-hover-bg: rgba(0, 0, 0, 0.05);
+    --glass-navbar-bg: rgba(255, 255, 255, 0.7);
+    --glass-navbar-hover-text: rgba(0, 0, 0, 0.7);
+    --glass-body-bg: #fff;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --glass-bg: rgba(255, 255, 255, 0.1);
+        --glass-border: rgba(255, 255, 255, 0.2);
+        --glass-shadow: 0 8px 8px 0 rgba(31, 38, 135, 0.37);
+        --glass-text: #fff;
+        --glass-input-bg: rgba(255, 255, 255, 0.1);
+        --glass-input-focus-bg: rgba(255, 255, 255, 0.2);
+        --glass-input-focus-border: rgba(255, 255, 255, 0.5);
+        --glass-input-focus-shadow: rgba(255, 255, 255, 0.15);
+        --glass-placeholder: rgba(255, 255, 255, 0.6);
+        --glass-card-header-bg: rgba(255, 255, 255, 0.05);
+        --glass-btn-hover-bg: rgba(255, 255, 255, 0.25);
+        --glass-btn-hover-border: rgba(255, 255, 255, 0.4);
+        --glass-btn-hover-text: #fff;
+        --glass-btn-active-bg: rgba(255, 255, 255, 0.3);
+        --glass-modal-bg: rgba(40, 40, 40, 0.65);
+        --glass-dropdown-bg: rgba(40, 40, 40, 0.9);
+        --glass-dropdown-text: #fff;
+        --glass-dropdown-hover-bg: rgba(255, 255, 255, 0.1);
+        --glass-navbar-bg: rgba(255, 255, 255, 0.1);
+        --glass-navbar-hover-text: rgba(255, 255, 255, 0.8);
+        --glass-body-bg: #1a1a1a;
+    }
+}
+
+body {
+    background: var(--glass-body-bg);
+    color: var(--glass-text);
+    min-height: 100vh;
+}
+
+.glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    color: var(--glass-text);
+}
+
+.glass-rounded {
+    border-radius: 10px;
+}
+
+/* Bootstrap Card Extension */
+.card {
+    background: var(--glass-bg); /* Bootstrap cards have white bg by default */
+    border-radius: 10px;
+}
+
+.card .card-header,
+.card .card-footer {
+    border-bottom: 1px solid var(--glass-border);
+    border-top: 1px solid var(--glass-border);
+    background: var(--glass-card-header-bg);
+}
+
+.card .card-text, .card .card-title {
+    color: var(--glass-text);
+}
+
+/* Glass Buttons */
+.btn-glass {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    color: var(--glass-text);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    transition: all 0.3s ease;
+}
+
+.btn-glass:hover {
+    background: var(--glass-btn-hover-bg);
+    border-color: var(--glass-btn-hover-border);
+    color: var(--glass-btn-hover-text);
+}
+
+.btn-glass:active {
+    background: var(--glass-btn-active-bg);
+}
+
+/* Glass Inputs */
+.form-control,
+.form-select {
+    background-color: var(--glass-input-bg);
+    border: 1px solid var(--glass-border);
+    color: var(--glass-text);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+.form-control:focus,
+.form-select:focus {
+    background-color: var(--glass-input-focus-bg);
+    border-color: var(--glass-input-focus-border);
+    color: var(--glass-text);
+    box-shadow: 0 0 0 0.25rem var(--glass-input-focus-shadow);
+}
+
+.form-control::placeholder {
+    color: var(--glass-placeholder);
+}
+
+/* Navbar support */
+.navbar {
+    background: var(--glass-navbar-bg) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.navbar .nav-link {
+    color: var(--glass-text) !important;
+}
+
+.navbar .nav-link:hover {
+    color: var(--glass-navbar-hover-text) !important;
+}
+
+.navbar .navbar-brand {
+    color: var(--glass-text) !important;
+}
+
+/* Modal support */
+.modal-content {
+    background: var(--glass-modal-bg); /* Darker base for modals */
+    border: 1px solid var(--glass-border);
+}
+
+.modal-content .modal-header,
+.modal-content .modal-footer {
+    border-color: var(--glass-border);
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+    background: var(--glass-dropdown-bg); /* More opaque */
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+}
+
+.dropdown-menu .dropdown-item {
+     color: var(--glass-dropdown-text); /* Dark text for dropdowns usually */
+}
+.dropdown-menu .dropdown-item:hover {
+    background: var(--glass-dropdown-hover-bg);
+}
+
+/* Utility to force text color if needed */
+.text-glass {
+    color: var(--glass-text) !important;
+}
+.form-control:disabled,
+.form-select:disabled {
+    background-color: var(--glass-input-bg);
+    color: var(--glass-text);
+    opacity: 0.6;
+}
+
+@media (prefers-color-scheme: dark) {
+    .btn-close {
+        filter: invert(1) grayscale(100%) brightness(200%);
+    }
+    .form-select {
+        --bs-form-select-bg-img: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+    }
+}
+
+/* Dark variant override */
+.glass-dark {
+    --glass-bg: rgba(0, 0, 0, 0.4);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-text: #ddd;
+    --glass-input-bg: rgba(0, 0, 0, 0.3);
+    --glass-input-focus-bg: rgba(0, 0, 0, 0.5);
+}
