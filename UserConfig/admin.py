@@ -9,7 +9,6 @@ class UserKeyBindInline(admin.TabularInline):
 
 @admin.register(ModelKey)
 class ModelKeyAdmin(admin.ModelAdmin):
-    list_display = ('name', 'model_provider')
-    list_filter = ('model_provider',)
-    search_fields = ('name', 'model_provider')
+    list_display = ('name', 'model_id', 'quick_model_id', 'lyria_model_id')
+    search_fields = ('name', )
     inlines = [UserKeyBindInline]

@@ -1,42 +1,42 @@
 # Interactive music
 Discuss, describe, and generate music with large language models
 
-![](https://shields.io/badge/dependencies-Python_3.13-blue)
-![](https://shields.io/badge/dependencies-Google_Gemini-blue)
-
-[TOC]
+![](https://shields.io/badge/dependencies-Python_3.14-blue)
+![](https://shields.io/badge/dependencies-Google_AI_Studio-orange)
+![](https://shields.io/badge/dependencies-PowerShell_7-navy)
 
 
 
 ## Install
 
-Create a text file `config.yaml` of YAML format in the program's root directory. Add the following key-value pairs into this file.
+Create `.env` file and define the following environment variables. [Format](https://github.com/env-lang/env/blob/main/env.md)
 
-| Key                        | Value type | Description                                                  |
-| -------------------------- | ---------- | ------------------------------------------------------------ |
-| `secret_key`               | `str`      | Django application's secret key. Generate the key at [Djecrety](https://djecrety.ir/) website, or use any string of 50 random ASCII characters. |
-| `default_model_provider`   | `str`      | Default large language model provider. <br />Options: `gemini` |
-| `default_model_id`         | `str`      | Model ID of default large language model for main functions (chat, summary, draw diagrams). This model usually has strong intelligence. |
-| `conv_title_model_id`      | `str`      | Model ID of the large language model to generate conversation title. This model usually is smaller and cheaper model. |
-| `draw_diagram_max_retries` | `int`      | Number of times to retry when the model fails to generate a diagram, usually fails to render because of syntax error. |
+| Name       | Data type | Description                                                  |
+| ---------- | --------- | ------------------------------------------------------------ |
+| SECRET_KEY | str       | Django application's secret key. Generate the key at [Djecrety](https://djecrety.ir/) website, or use any string of 50 random ASCII characters. |
 
-Create a Python virtual environment and activate. Run the following command.
+Create a Python virtual environment and activate.
+
+Run the following commands in PowerShell.
 
 ```
 pip install -r requirements.txt
+.\set_env.ps1
 python manage.py migrate
-python manage.py createsuperuser
 ```
 
-Follow the instruction in the command line, to create a super user.
+Create a super user. [Guidance](https://www.w3schools.com/django/django_admin_create_user.php)
 
 
 
 ## Usage
 
-Run the following command.
+### Start server
+
+Run the following commands in PowerShell.
 
 ```
+.\set_env.ps1
 python manage.py runserver
 ```
 
@@ -44,37 +44,33 @@ By default, it deploys the website to https://localhost:8000 The target location
 
 The following instructions assume you deploy to the default location, unless in topic of deploying.
 
-
-
-### Allocate large language model resources to users
+### Config access to models
 
 Log in staff account. Click "Admin" in the main page after logged in.
 
-![image-20260201104656947](./assets/image-20260201104656947.png)
+![image-20260201104656947](./assets/banner.png)
 
 In "USERCONFIG" application, "Model keys" table, create a new object.
 
-![image-20260201104803878](./assets/image-20260201104803878.png)
+![image-20260923023026248](./assets/image-20260923023026248.png)
 
-Fill in the organization name, API key from large language model provider. You can customize the model provider and model IDs, but they should match the API key.
+Give a customized name, API key from Google AI Studio, and set models' ID for different purposes:
 
->   [!NOTE]
->
->   Currently, only Gemini API is integrated. You can use other providers whose API is compatible to Gemini.
+-   Model ID: respond the user in conversations; conclude conversation into Google Lyria prompts.
+-   Quick model ID: generate title of the conversation.
+-   Lyria model ID: Google Lyria model for music generation.
 
-Add users who will have access to this large language model to "USER KEY BINDS" table.
+![image-20260923023039978](./assets/image-20260923023039978.png)
+
+Add users to the model configuration profile in "USER KEY BINDS" section.
 
 >   [!TIP]
 >
->   Delete user here only removes there access to the large language model, but won't delete their account.
-
-![image-20260201104842898](./assets/image-20260201104842898.png)
+>   Delete user here only removes there access to large language models, but won't delete their account.
 
 ### Light & dark theme
 
-The program determines light or dark theme according to the user's browser settings. For example, if the user uses Chrome browser, the program will show dark theme if "Settings > Appearance > Mode" is "Dark". Technically, it implements dark theme CSS in `@media (prefers-color-scheme: dark)` tag.
+The program determines light or dark theme according to the user's browser settings. For example, if they use Chrome browser, the program will show dark theme if "Settings > Appearance > Mode" is "Dark". Technically, it implements dark theme CSS in `@media (prefers-color-scheme: dark)` tag.
 
 ![image-20260201104357744](./assets/image-20260201104357744.png)
-
-### Generate music
 

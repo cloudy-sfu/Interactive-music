@@ -23,4 +23,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('UserConfig/', include('UserConfig.urls')),
     path('Conversation/', include('Conversation.urls')),
+    path('AudioGeneration/', include('AudioGeneration.urls')),
 ]

@@ -232,32 +232,31 @@
                 <div class="glass glass-rounded diagram-container">
                     <div class="diagram-header">
                         <div class="d-flex align-items-center gap-2">
-                             <span class="fw-bold">Diagram Preview</span>
+                             <label class="fw-bold" for="generationSelect">Preview</label>
                              <!-- Select list only contains IDs, content is fetched async -->
-                             <select id="diagramSelect" class="form-select form-select-sm diagram-select" style="width: auto;" {% if not diagrams %}disabled{% endif %}>
+                             <select id="generationSelect" class="form-select form-select-sm diagram-select" style="width: auto;" {% if not diagrams %}disabled{% endif %}>
                                 {% if diagrams %}
                                     {% for diagram in diagrams %}
                                         <option value="{{ diagram.id }}" {% if forloop.last %}selected{% endif %}>Version {{ forloop.counter }}</option>
                                     {% endfor %}
                                 {% else %}
-                                    <option selected>No Diagram</option>
+                                    <option selected>No Audio</option>
                                 {% endif %}
-                            </select>
-                             <button id="generateDiagramBtn" class="btn btn-sm btn-custom rounded-pill py-1 px-3">Generate Diagram</button>
+                             </select>
+                             <button id="generateDiagramBtn" class="btn btn-sm btn-custom rounded-pill py-1 px-3">Generate</button>
                              <div class="dropdown d-inline-block">
                                   <button class="btn btn-sm btn-custom rounded-pill py-1 px-3 dropdown-toggle" type="button" id="downloadDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                    Download
+                                      Download
                                   </button>
                                   <ul class="dropdown-menu glass" aria-labelledby="downloadDropdown">
-                                    <li><a class="dropdown-item" href="#" id="downloadHtml">HTML</a></li>
-                                    <li><a class="dropdown-item" href="#" id="downloadSource">Source Code</a></li>
-                                    <li><a class="dropdown-item" href="#" id="downloadImage">
-                                        Picture
-                                        <span class="badge text-bg-primary">Experimental</span>
-                                    </a></li>
+                                      <li><a class="dropdown-item" href="#" id="downloadHtml">HTML</a></li>
+                                      <li><a class="dropdown-item" href="#" id="downloadSource">Source Code</a></li>
+                                      <li><a class="dropdown-item" href="#" id="downloadImage">
+                                          Picture
+                                          <span class="badge text-bg-primary">Experimental</span>
+                                      </a></li>
                                   </ul>
                             </div>
-
                         </div>
                         <div class="d-flex align-items-center gap-2">
                              <a href="{% url 'conversation_list' %}" class="btn btn-sm btn-glass">Back</a>
@@ -266,11 +265,11 @@
                     <div class="diagram-content">
                         <!-- Iframe starts empty, loaded by JS -->
                         <iframe id="diagramFrame" class="diagram-frame" srcdoc=""></iframe>
-                        
+
                         {% if not diagrams %}
                         <!-- Overlay for empty state if needed, though Select logic handles most -->
                         <div id="emptyState" class="d-flex justify-content-center align-items-center h-100 position-absolute top-0 start-0 w-100" style="pointer-events: none;">
-                            <span class="text-glass" style="opacity: 0.5;">No Diagram</span>
+                            <span class="text-glass" style="opacity: 0.5;">No Audio</span>
                         </div>
                         {% endif %}
                     </div>
@@ -284,24 +283,15 @@
       <div class="modal-dialog modal-lg">
         <div class="modal-content glass">
           <div class="modal-header">
-            <h5 class="modal-title">Diagram description</h5>
+            <h5 class="modal-title">Google Lyria prompts</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-             <form id="diagramForm" method="POST" action="{% url 'create_diagram' conversation.id %}">
+             <form id="diagramForm" method="POST" action="{% url 'generate_music' conversation.id %}">
                  {% csrf_token %}
                  <div class="mb-3">
-                    <label for="syntaxSelect" class="form-label">Template</label>
-                     <!-- SyntaxChoice: MER=Mermaid (default), CYT=Cytoscape -->
-                    <select class="form-select diagram-select" id="syntaxSelect" name="syntax">
-                        {% for code, name in syntax_choices %}
-                        <option value="{{ code }}" {% if forloop.first %}selected{% endif %}>{{ name }}</option>
-                        {% endfor %}
-                    </select>
-                 </div>
-                 <div class="mb-3">
-                     <label for="summaryText" class="form-label"><i>Read the diagram description and edit as you want.</i></label>
-                     <textarea class="form-control glass" id="summaryText" name="profile" rows="10"></textarea>
+                     <label for="LyriaPrompt" class="form-label">Prompt:</label>
+                     <textarea class="form-control glass" id="LyriaPrompt" name="prompt" rows="15"></textarea>
                  </div>
                  <div class="text-end">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -449,14 +439,14 @@
             }
 
             // --- Unified Diagram Loading Logic ---
-            const diagramSelect = document.getElementById('diagramSelect');
+            const generationSelect = document.getElementById('generationSelect');
             const diagramFrame = document.getElementById('diagramFrame');
             const emptyState = document.getElementById('emptyState');
 
             let currentDiagramData = null;
 
             async function loadDiagram(diagramId) {
-                if (!diagramId || diagramId === 'No Diagram') return;
+                if (!diagramId || diagramId === 'No Audio') return;
                 try {
                     const response = await fetch(`/Conversation/diagram/${diagramId}/`);
                     if (!response.ok) {
@@ -555,13 +545,13 @@
             }
 
             // 1. Initial Load: If there is a selected value on page load, fetch it
-            if (diagramSelect && diagramSelect.value && diagramSelect.value !== 'No Diagram') {
-                loadDiagram(diagramSelect.value);
+            if (generationSelect && generationSelect.value && generationSelect.value !== 'No Audio') {
+                loadDiagram(generationSelect.value);
             }
 
             // 2. Switching Versions
-            if (diagramSelect) {
-                diagramSelect.addEventListener('change', function() {
+            if (generationSelect) {
+                generationSelect.addEventListener('change', function() {
                     loadDiagram(this.value);
                 });
             }
@@ -574,7 +564,7 @@
 
                     const submitBtn = diagramForm.querySelector('button[type="submit"]');
                     const originalText = submitBtn.textContent;
-                    submitBtn.textContent = 'Drawing...';
+                    submitBtn.textContent = 'Composing...';
                     submitBtn.disabled = true;
 
                     const formData = new FormData(diagramForm);
@@ -596,18 +586,18 @@
                             currentDiagramData = responseData.diagram;
 
                             // Update Dropdown
-                             if (diagramSelect) {
-                                  if (diagramSelect.options.length > 0 && diagramSelect.options[0].textContent === 'No Diagram') {
-                                      diagramSelect.innerHTML = '';
-                                      diagramSelect.disabled = false;
+                             if (generationSelect) {
+                                  if (generationSelect.options.length > 0 && generationSelect.options[0].textContent === 'No Audio') {
+                                      generationSelect.innerHTML = '';
+                                      generationSelect.disabled = false;
                                       if (emptyState) emptyState.remove();
                                   }
-                                  
+
                                   const option = document.createElement('option');
                                   option.value = responseData.diagram.id;
-                                  option.textContent = `Version ${diagramSelect.options.length + 1}`;
+                                  option.textContent = `Version ${generationSelect.options.length + 1}`;
                                   option.selected = true;
-                                  diagramSelect.appendChild(option);
+                                  generationSelect.appendChild(option);
                              }
 
                              // Update Iframe directly (No need to fetch again)
@@ -615,7 +605,7 @@
                                   diagramFrame.srcdoc = responseData.diagram.content;
                              }
                         }
-                        
+
                         // Close Modal
                         const summaryModalEl = document.getElementById('summaryModal');
                         const summaryModal = bootstrap.Modal.getInstance(summaryModalEl);
@@ -637,31 +627,31 @@
                 });
             }
 
-            // --- Generate Summary Logic ---
+            // --- Generate Lyria prompt Logic ---
             const generateBtn = document.getElementById('generateDiagramBtn');
             if (generateBtn) {
                 generateBtn.addEventListener('click', async function() {
                     const originalText = generateBtn.textContent;
-                    generateBtn.textContent = 'Summarizing...';
+                    generateBtn.textContent = 'Generating...';
                     generateBtn.disabled = true;
 
                     try {
-                        const response = await fetch("{% url 'generate_summary' conversation.id %}", {
+                        const response = await fetch("{% url 'generate_lyria_prompt' conversation.id %}", {
                             method: 'POST',
                             headers: { 'X-CSRFToken': csrfToken }
                         });
 
                         if (!response.ok) {
                              const data = await response.json().catch(() => ({}));
-                             throw new Error(data.error || 'Failed to generate summary');
+                             throw new Error(data.error || 'Failed to generate Lyria prompt');
                         }
 
-                        const data = await response.json();
-                        const summaryText = document.getElementById('summaryText');
+                        const data = await response.json()
                         const summaryModalEl = document.getElementById('summaryModal');
                         const summaryModal = bootstrap.Modal.getOrCreateInstance(summaryModalEl);
 
-                        summaryText.value = data.summary;
+                        const LyriaPrompt = document.getElementById('LyriaPrompt');
+                        LyriaPrompt.value = data.prompt;
                         summaryModal.show();
 
                     } catch (error) {
