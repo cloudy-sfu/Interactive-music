@@ -11,3 +11,4 @@ class Music(models.Model):
     prompt = models.TextField(blank=False)
     created_time = models.DateTimeField(auto_now_add=True)
     lyrics = models.TextField(blank=True)
+    mime_type = models.TextField(blank=True)

@@ -1,7 +1,7 @@
 import base64
 
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_POST
 from google import genai
@@ -33,8 +33,6 @@ def generate_lyria_prompt(request, conversation_id):
 
     try:
         user_key_bind = UserKeyBind.objects.get(user=request.user)
-        if not user_key_bind.model_key:
-            raise ValueError("No model key bound.")
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
     if not user_key_bind.model_key:
@@ -43,9 +41,9 @@ def generate_lyria_prompt(request, conversation_id):
                      'administrator.'
         }, status=400)
     model_key = user_key_bind.model_key
-    client = genai.Client(api_key=model_key.model_api_key)
 
     try:
+        client = genai.Client(api_key=model_key.model_api_key)
         chat = client.chats.create(
             model=model_key.model_id,
             config=genai.types.GenerateContentConfig(
@@ -78,8 +76,6 @@ def generate_music(request, conversation_id):
 
     try:
         user_key_bind = UserKeyBind.objects.get(user=request.user)
-        if not user_key_bind.model_key:
-            raise ValueError("No model key bound.")
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
     if not user_key_bind.model_key:
@@ -91,13 +87,12 @@ def generate_music(request, conversation_id):
 
     try:
         client = genai.Client(api_key=model_key.model_api_key)
+        interaction = client.interactions.create(
+            model=model_key.lyria_model_id, input=prompt,
+            response_format={"type": "audio"},
+        )
     except Exception as e:
-        return JsonResponse({
-            'error': "Fail to build coonection with Google Lyria."}, status=500)
-    interaction = client.interactions.create(
-        model=model_key.lyria_model_id, input=prompt,
-        response_format = {"type": "audio"},
-    )
+        return JsonResponse({'error': f"Failed to initialize model: {e}"}, status=500)
     if interaction.status != "completed":
         return JsonResponse({
             'error': f'The request is {interaction.status}. Error: {interaction.errors}'
@@ -110,6 +105,8 @@ def generate_music(request, conversation_id):
         audio=base64.b64decode(interaction.output_audio.data),
         prompt=prompt,
     )
+    if interaction.output_audio.mime_type:
+        music.mime_type = interaction.output_audio.mime_type
     if interaction.output_text:
         music.lyrics = interaction.output_text
     music.save()
@@ -117,5 +114,26 @@ def generate_music(request, conversation_id):
         'status': 'success',
         'diagram': {
             'id': music.id,
+            'lyrics': music.lyrics,
+            'mime_type': music.mime_type,
+            'prompt': prompt,
         }
     })
+
+
+@login_required(login_url='login')
+def view_music(request, music_id):
+    music = get_object_or_404(Music, conversation__owner=request.user, id=music_id)
+    return JsonResponse({
+        'lyrics': music.lyrics,
+        'mime_type': music.mime_type,
+        'prompt': music.prompt,
+    })
+
+
+@login_required(login_url='login')
+def view_audio(request, music_id):
+    music = get_object_or_404(Music, conversation__owner=request.user, id=music_id)
+    response = HttpResponse(music.audio, content_type=music.mime_type)
+    response["Accept-Ranges"] = "bytes"
+    return response

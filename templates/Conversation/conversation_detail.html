@@ -160,7 +160,7 @@
             background-color: var(--glass-bg);
             border-bottom-left-radius: 10px;
             border-bottom-right-radius: 10px;
-            overflow: hidden;
+            overflow-y: scroll;
             position: relative;
         }
         iframe.diagram-frame {
@@ -244,33 +244,21 @@
                                 {% endif %}
                              </select>
                              <button id="generateDiagramBtn" class="btn btn-sm btn-custom rounded-pill py-1 px-3">Generate</button>
-                             <div class="dropdown d-inline-block">
-                                  <button class="btn btn-sm btn-custom rounded-pill py-1 px-3 dropdown-toggle" type="button" id="downloadDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                      Download
-                                  </button>
-                                  <ul class="dropdown-menu glass" aria-labelledby="downloadDropdown">
-                                      <li><a class="dropdown-item" href="#" id="downloadHtml">HTML</a></li>
-                                      <li><a class="dropdown-item" href="#" id="downloadSource">Source Code</a></li>
-                                      <li><a class="dropdown-item" href="#" id="downloadImage">
-                                          Picture
-                                          <span class="badge text-bg-primary">Experimental</span>
-                                      </a></li>
-                                  </ul>
-                            </div>
                         </div>
                         <div class="d-flex align-items-center gap-2">
                              <a href="{% url 'conversation_list' %}" class="btn btn-sm btn-glass">Back</a>
                         </div>
                     </div>
-                    <div class="diagram-content">
-                        <!-- Iframe starts empty, loaded by JS -->
-                        <iframe id="diagramFrame" class="diagram-frame" srcdoc=""></iframe>
-
-                        {% if not diagrams %}
-                        <!-- Overlay for empty state if needed, though Select logic handles most -->
-                        <div id="emptyState" class="d-flex justify-content-center align-items-center h-100 position-absolute top-0 start-0 w-100" style="pointer-events: none;">
+                    <div class="diagram-content p-4">
+                        {% if diagrams %}
+                            <p>Generated music:</p>
+                            <audio id="audio-1" src="" type="" controls class="w-100 mb-4"></audio>
+                            <p>Lyrics:</p>
+                            <p id="lyrics" class="ms-4 mb-4"></p>
+                            <p>Prompt:</p>
+                            <p id="used-prompt" class="ms-4"></p>
+                        {% else %}
                             <span class="text-glass" style="opacity: 0.5;">No Audio</span>
-                        </div>
                         {% endif %}
                     </div>
                 </div>
@@ -440,108 +428,31 @@
 
             // --- Unified Diagram Loading Logic ---
             const generationSelect = document.getElementById('generationSelect');
-            const diagramFrame = document.getElementById('diagramFrame');
-            const emptyState = document.getElementById('emptyState');
+            const audio_tag = document.getElementById('audio-1');
+            const lyrics = document.getElementById('lyrics');
+            const used_prompt = document.getElementById('used-prompt');
 
             let currentDiagramData = null;
 
             async function loadDiagram(diagramId) {
                 if (!diagramId || diagramId === 'No Audio') return;
                 try {
-                    const response = await fetch(`/Conversation/diagram/${diagramId}/`);
+                    const response = await fetch(`/AudioGeneration/music/${diagramId}`);
                     if (!response.ok) {
                         // Server error
                         const errorData = await response.json();
                         throw new Error(errorData.error);
                     }
                     const data = await response.json();
-                    currentDiagramData = data;
-
-                    if (diagramFrame) {
-                        diagramFrame.srcdoc = data.content;
-                        if (emptyState) emptyState.remove();
-                    }
+                    audio_tag.src = `/AudioGeneration/audio/${diagramId}`;
+                    audio_tag.type = data.mime_type;
+                    lyrics.innerText = data.lyrics;
+                    used_prompt.innerText = data.prompt;
                 } catch (e) {
                     // Server error + Network error
                     console.error(e);
                     showErrorToast(e.message);
                 }
-            }
-
-            // --- Download Handlers ---
-            function downloadString(text, fileType, fileName) {
-                const blob = new Blob([text], { type: fileType });
-                const a = document.createElement('a');
-                a.download = fileName;
-                a.href = URL.createObjectURL(blob);
-                a.style.display = "none";
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                setTimeout(() => URL.revokeObjectURL(a.href), 1500);
-            }
-
-            const downloadHtmlBtn = document.getElementById('downloadHtml');
-            if (downloadHtmlBtn) {
-                downloadHtmlBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    if (!currentDiagramData) return showErrorToast("No diagram loaded.");
-                    downloadString(currentDiagramData.content, "text/html", `diagram_${currentDiagramData.id}.html`);
-                });
-            }
-
-            const downloadSourceBtn = document.getElementById('downloadSource');
-            if (downloadSourceBtn) {
-                 downloadSourceBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    if (!currentDiagramData) return showErrorToast("No diagram loaded.");
-                    downloadString(currentDiagramData.source_code, "text/plain", currentDiagramData.file_name);
-                });
-            }
-
-            const downloadImageBtn = document.getElementById('downloadImage');
-            if (downloadImageBtn) {
-                downloadImageBtn.addEventListener('click', async (e) => {
-                    e.preventDefault();
-                    if (!currentDiagramData) return showErrorToast("No diagram loaded.");
-
-                    const iframe = document.getElementById('diagramFrame');
-                    if (!iframe) return showErrorToast("Diagram frame not found.");
-
-                    if (typeof html2canvas === 'undefined') {
-                        return showErrorToast("Image capture library not loaded.");
-                    }
-
-                    const originalHtml = downloadImageBtn.innerHTML;
-                    downloadImageBtn.innerHTML = 'Wait...';
-
-                    try {
-                        const doc = iframe.contentDocument || iframe.contentWindow.document;
-                        const body = doc.body;
-
-                        // Use html2canvas to capture the iframe body
-                        // We use a slightly higher scale for better quality
-                        const canvas = await html2canvas(body, {
-                            scale: Math.max(window.devicePixelRatio, 2),
-                            useCORS: true,
-                            logging: false
-                        });
-
-                        const imgData = canvas.toDataURL("image/png");
-                        const link = document.createElement('a');
-                        link.download = `diagram_${currentDiagramData.id}.png`;
-                        link.href = imgData;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-
-                    } catch (error) {
-                        console.error(error);
-                        showErrorToast("Failed to capture image: " + error.message);
-                    } finally {
-                        downloadImageBtn.innerHTML = originalHtml;
-                    }
-                });
             }
 
             // 1. Initial Load: If there is a selected value on page load, fetch it
@@ -590,7 +501,6 @@
                                   if (generationSelect.options.length > 0 && generationSelect.options[0].textContent === 'No Audio') {
                                       generationSelect.innerHTML = '';
                                       generationSelect.disabled = false;
-                                      if (emptyState) emptyState.remove();
                                   }
 
                                   const option = document.createElement('option');
@@ -601,9 +511,10 @@
                              }
 
                              // Update Iframe directly (No need to fetch again)
-                             if (diagramFrame) {
-                                  diagramFrame.srcdoc = responseData.diagram.content;
-                             }
+                            audio_tag.src = `/AudioGeneration/audio/${responseData.diagram.id}`;
+                            audio_tag.type = responseData.diagram.mime_type;
+                            lyrics.innerText = responseData.diagram.lyrics;
+                            used_prompt.innerText = responseData.diagram.prompt;
                         }
 
                         // Close Modal
