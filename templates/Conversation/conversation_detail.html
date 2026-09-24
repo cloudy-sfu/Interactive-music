@@ -252,7 +252,9 @@
                     <div class="diagram-content p-4">
                         {% if diagrams %}
                             <p>Generated music:</p>
-                            <audio id="audio-1" src="" type="" controls class="w-100 mb-4"></audio>
+                            <audio controls class="w-100 mb-4">
+                                <source id="audio-1" src="">
+                            </audio>
                             <p>Lyrics:</p>
                             <p id="lyrics" class="ms-4 mb-4"></p>
                             <p>Prompt:</p>
@@ -446,6 +448,8 @@
                     const data = await response.json();
                     audio_tag.src = `/AudioGeneration/audio/${diagramId}`;
                     audio_tag.type = data.mime_type;
+                    audio_tag.parentElement.title = `audio_${diagramId}`;
+                    audio_tag.parentElement.load();
                     lyrics.innerText = data.lyrics;
                     used_prompt.innerText = data.prompt;
                 } catch (e) {
@@ -513,6 +517,8 @@
                              // Update Iframe directly (No need to fetch again)
                             audio_tag.src = `/AudioGeneration/audio/${responseData.diagram.id}`;
                             audio_tag.type = responseData.diagram.mime_type;
+                            audio_tag.parentElement.title = `audio_${responseData.diagram.id}`;
+                            audio_tag.parentElement.load();
                             lyrics.innerText = responseData.diagram.lyrics;
                             used_prompt.innerText = responseData.diagram.prompt;
                         }
